@@ -22,11 +22,10 @@ import sys
 
 import xbmc
 import xbmcaddon as xa
+import xbmcgui as xg
+import xbmcplugin as xp
 
 import resources.lib.putio2 as putio2
-
-from resources.lib.exceptions import *
-from resources.lib.gui import *
 
 
 PLUGIN_ID = "plugin.video.putiov2"
@@ -37,14 +36,52 @@ itemId = sys.argv[2].lstrip("?")
 addon = xa.Addon(PLUGIN_ID)
 
 
+class PutioAuthFailureException(Exception):
+    def __init__(self, header, message, duration = 10000, icon = "error.png"):
+        self.header = header
+        self.message = message
+        self.duration = duration
+        self.icon = icon
+
+def populateDir(pluginUrl, pluginId, listing):    
+   
+    for item in listing:                        
+        if item.screenshot:
+            screenshot = item.screenshot
+        else:
+            screenshot = item.icon
+
+        url = "%s?%s" % (pluginUrl, item.id)
+        listItem = xg.ListItem(
+            item.name,
+            item.name,
+            screenshot,
+            screenshot
+        )
+
+        xp.addDirectoryItem(
+            pluginId,
+            url,
+            listItem,
+            "application/x-directory" == item.content_type
+        )
+        
+    xp.endOfDirectory(pluginId)
+
+
+def play(item, subtitle=None):
+    player = xbmc.Player()
+    player.play(item.stream_url)
+    
+    if subtitle:
+        player.setSubtitles(subtitle)
+
 class PutioApiHandler(object):
     """
     Class to handle putio api calls for XBMC actions
     
     """
-    
-    wantedItemTypes = ("folder", "movie", "audio", "unknown", "file")
-    subtitleTypes = ("srt", "sub")
+    subtitleTypes = ("srt", "sub")    
     
     def __init__(self, pluginId):        
         self.addon = xa.Addon(pluginId)
@@ -61,13 +98,11 @@ class PutioApiHandler(object):
         return self.apiclient.File.GET(itemId)
     
     def getRootListing(self):
-        items = []
-        
+        items = []        
         for item in self.apiclient.File.list(parent_id=0):
             if item.content_type:
                 if self.showable(item):
-                    items.append(item)                    
-        
+                    items.append(item)                            
         return items
     
     def showable(self, item):
@@ -79,24 +114,20 @@ class PutioApiHandler(object):
             return True
         else:
             return False
-
+                
     def getFolderListing(self, folderId, isItemFilterActive = True):
-        items = []
-        
+        items = []        
         for item in self.apiclient.File.list(parent_id=folderId):
             if isItemFilterActive and not self.showable(item):
                 continue
-            items.append(item)
-        
+            items.append(item)        
         return items
     
     def getSubtitle(self, item):
-        fileName, extension = os.path.splitext(item.name)
-        
+        fileName, extension = os.path.splitext(item.name)        
         for i in self.getFolderListing(item.parent_id, False):
             if item.content_type != "application/x-directory":
-                fn, ext = os.path.splitext(i.name)
-                
+                fn, ext = os.path.splitext(i.name)                
                 if i.name.find(fileName) != -1 and (ext.lstrip(".") in self.subtitleTypes):
                     return i.stream_url
 
