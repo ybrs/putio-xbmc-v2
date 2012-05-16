@@ -71,8 +71,10 @@ def populateDir(pluginUrl, pluginId, listing):
 
 def play(item, subtitle=None):
     player = xbmc.Player()
-    player.play(item.stream_url)
-    
+    if item.is_mp4_available:
+        player.play(item.mp4_stream_url)
+    else:
+        player.play(item.stream_url)    
     if subtitle:
         player.setSubtitles(subtitle)
 

@@ -168,6 +168,10 @@ class _File(_BaseResource):
     def stream_url(self):
         return API_URL + '/files/%s/stream?oauth_token=%s' % (self.id, self.client.access_token)
 
+    @property
+    def mp4_stream_url(self):
+        return API_URL + '/files/%s/mp4/stream?oauth_token=%s' % (self.id, self.client.access_token)
+
     def download(self, dest='.', range=None):
         if range:
             headers = {'Range': 'bytes=%s-%s' % range}
