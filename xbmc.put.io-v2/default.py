@@ -19,14 +19,9 @@
 
 import os
 import sys
-
 import xbmc
 import xbmcaddon as xa
-import xbmcgui as xg
-import xbmcplugin as xp
-
 import resources.lib.putio2 as putio2
-
 
 PLUGIN_ID = "plugin.video.putiov2"
 
@@ -34,6 +29,18 @@ pluginUrl = sys.argv[0]
 pluginId = int(sys.argv[1])
 itemId = sys.argv[2].lstrip("?")
 addon = xa.Addon(PLUGIN_ID)
+
+try:
+    thegui = xg
+except:
+    import xbmcgui
+    thegui = xbmcgui
+
+try:
+    thexp = xp
+except:
+    import xbmcplugin
+    thexp = xbmcplugin
 
 
 class PutioAuthFailureException(Exception):
@@ -52,29 +59,35 @@ def populateDir(pluginUrl, pluginId, listing):
             screenshot = item.icon
 
         url = "%s?%s" % (pluginUrl, item.id)
-        listItem = xg.ListItem(
+
+        print "name===", item.name.encode('utf-8')
+
+        listItem = thegui.ListItem(
             item.name,
             item.name,
             screenshot,
             screenshot
         )
 
-        xp.addDirectoryItem(
+        listItem.setInfo('video', {'Title': 'Ironman', 'Genre': 'Science Fiction'})
+
+
+        thexp.addDirectoryItem(
             pluginId,
             url,
             listItem,
             "application/x-directory" == item.content_type
         )
         
-    xp.endOfDirectory(pluginId)
+    thexp.endOfDirectory(pluginId)
 
 
 def play(item, subtitle=None):
     player = xbmc.Player()
-    if item.is_mp4_available:
-        player.play(item.mp4_stream_url)
-    else:
-        player.play(item.stream_url)    
+    listitem = xbmcgui.ListItem('Ironman')
+    listitem.setInfo('video', {'Title': item.name})
+    player.play(item.stream_url, listitem)
+    
     if subtitle:
         player.setSubtitles(subtitle)
 
@@ -83,7 +96,9 @@ class PutioApiHandler(object):
     Class to handle putio api calls for XBMC actions
     
     """
-    subtitleTypes = ("srt", "sub")    
+    
+    wantedItemTypes = ("folder", "movie", "audio", "unknown", "file")
+    subtitleTypes = ("srt", "sub")
     
     def __init__(self, pluginId):        
         self.addon = xa.Addon(pluginId)
@@ -104,7 +119,8 @@ class PutioApiHandler(object):
         for item in self.apiclient.File.list(parent_id=0):
             if item.content_type:
                 if self.showable(item):
-                    items.append(item)                            
+                    items.append(item)                    
+        
         return items
     
     def showable(self, item):
@@ -116,7 +132,7 @@ class PutioApiHandler(object):
             return True
         else:
             return False
-                
+
     def getFolderListing(self, folderId, isItemFilterActive = True):
         items = []        
         for item in self.apiclient.File.list(parent_id=folderId):
