@@ -24,7 +24,9 @@ Installation
 
 Just zip this directory and install it via XBMC's related menu.
 
-Follow this link to get your oauth token: http://put.io/v2/oauth2/apptoken/26 
+Follow this link to get your oauth token: 
+http://put.io/v2/oauth2/apptoken/26 
+
 You'll need to enter it in settings dialog of the application.
 
 About this addon
@@ -32,6 +34,4 @@ About this addon
 Its forked from https://github.com/tunix/xbmc.put.io and modified to work with Put.io Api v2. 
 Includes code from http://docs.python-requests.org/en/latest/index.html and http://pypi.python.org/pypi/iso8601/
 
-Known Issues
----------------------------------------
-Doesn't show shared folders' contents
+
