@@ -24,7 +24,7 @@ Installation
 
 Just zip this directory and install it via XBMC's related menu.
 
-Follow this link to get your oauth token: http://splitjoin.com/putio-xbmc.php 
+Follow this link to get your oauth token: http://put.io/v2/oauth2/apptoken/26 
 You'll need to enter it in settings dialog of the application.
 
 About this addon

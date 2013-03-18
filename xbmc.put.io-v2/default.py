@@ -44,7 +44,7 @@ except:
 
 
 class PutioAuthFailureException(Exception):
-    def __init__(self, header, message, duration = 10000, icon = "error.png"):
+    def __init__(self, header, message, duration=10000, icon="error.png"):
         self.header = header
         self.message = message
         self.duration = duration
@@ -59,18 +59,18 @@ def populateDir(pluginUrl, pluginId, listing):
             screenshot = item.icon
 
         url = "%s?%s" % (pluginUrl, item.id)
-
-        print "name===", item.name.encode('utf-8')
-
         listItem = thegui.ListItem(
             item.name,
             item.name,
             screenshot,
             screenshot
         )
-
-        listItem.setInfo('video', {'Title': 'Ironman', 'Genre': 'Science Fiction'})
-
+        
+        listItem.setInfo(item.content_type, {
+               'originaltitle': item.name,
+               'title': item.name,
+               'sorttitle':item.name
+        })
 
         thexp.addDirectoryItem(
             pluginId,
@@ -84,9 +84,21 @@ def populateDir(pluginUrl, pluginId, listing):
 
 def play(item, subtitle=None):
     player = xbmc.Player()
-    listitem = xbmcgui.ListItem('Ironman')
-    listitem.setInfo('video', {'Title': item.name})
-    player.play(item.stream_url, listitem)
+    
+    if item.screenshot:
+        screenshot = item.screenshot
+    else:
+        screenshot = item.icon
+    
+    listItem = thegui.ListItem(
+        item.name,
+        item.name,
+        screenshot,
+        screenshot
+    )
+    
+    listItem.setInfo('video', {'Title': item.name})
+    player.play(item.stream_url, listItem)
     
     if subtitle:
         player.setSubtitles(subtitle)
@@ -133,7 +145,7 @@ class PutioApiHandler(object):
         else:
             return False
 
-    def getFolderListing(self, folderId, isItemFilterActive = True):
+    def getFolderListing(self, folderId, isItemFilterActive=True):
         items = []        
         for item in self.apiclient.File.list(parent_id=folderId):
             if isItemFilterActive and not self.showable(item):
@@ -157,7 +169,7 @@ try:
             if item.content_type == "application/x-directory":
                 populateDir(pluginUrl, pluginId, putio.getFolderListing(itemId))
             elif "video" in item.content_type:
-                play(item, subtitle = putio.getSubtitle(item))
+                play(item, subtitle=putio.getSubtitle(item))
             else:
                 play(item)
     else:
