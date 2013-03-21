@@ -16,5 +16,8 @@
         <platform>all</platform>
         <summary lang="en">Put.io v2</summary>
         <description lang="en">A storage service that fetches media files (from various sources) and lets you stream them immediately. You need to have an oauth key.</description>
+        <disclaimer lang="en">You need a Put.io account to use this addon.</disclaimer>        
+        <language>en</language>
+        <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>                   
     </extension>
 </addon>
