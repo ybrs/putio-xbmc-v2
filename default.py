@@ -19,6 +19,9 @@
 
 import os
 import sys
+import requests
+import json
+import time
 import xbmc
 import xbmcaddon as xa
 import resources.lib.putio2 as putio2
@@ -161,6 +164,35 @@ class PutioApiHandler(object):
                 if i.name.find(fileName) != -1 and (ext.lstrip(".") in self.subtitleTypes):
                     return i.stream_url
 
+addonid = addon.getAddonInfo("id")
+addon = xa.Addon(addonid)
+uniqueid = addon.getSetting('uniqueid')
+if not uniqueid:    
+    r = requests.get("http://put.io/xbmc/getuniqueid")    
+    o = json.loads(r.content)
+    uniqueid = o['id']
+    addon.setSetting("uniqueid", uniqueid)
+
+oauthtoken = addon.getSetting('oauthkey')
+
+if not oauthtoken:
+    dialog = xbmcgui.Dialog()
+    dialog.ok(" Oauth Key Required", "Please visit: http://put.io/xbmc/id/%s \n then press ok" % uniqueid)
+
+while not oauthtoken:
+    try:
+        # now we'll try getting oauth key by giving our uniqueid 
+        r = requests.get("http://put.io/xbmc/k/%s" % uniqueid)
+        o = json.loads(r.content)
+        oauthtoken = o['oauthtoken']
+        if oauthtoken:            
+            addon.setSetting("oauthkey", str(oauthtoken))
+    except Exception as e:     
+        dialog = xbmcgui.Dialog()
+        dialog.ok("Oauth Key Error", str(e))
+        raise e        
+    time.sleep(1)
+
 try:
     putio = PutioApiHandler(addon.getAddonInfo("id"))
     if itemId:
@@ -174,10 +206,7 @@ try:
                 play(item)
     else:
         populateDir(pluginUrl, pluginId, putio.getRootListing())
-except PutioAuthFailureException, e:
-    xbmc.executebuiltin("XBMC.Notification(%s, %s, %d, %s)" % (
-        e.header,
-        e.message,
-        e.duration,
-        os.path.join(addon.getAddonInfo("path"), "resources", "images", "error.png")
-    ))
+except PutioAuthFailureException, e:    
+    dialog = xbmcgui.Dialog()
+    dialog.ok(" Oauth Key Required", "Please visit: http://put.io/xbmc")
+    
